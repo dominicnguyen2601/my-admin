@@ -1,84 +1,83 @@
 <template>
-  <a-layout class="login-layout">
-    <a-layout-content class="login-content">
-      <a-card title="Superadmin Login" class="login-card">
-        <a-form
-          :model="loginForm"
-          @submit.prevent="handleLogin"
-        >
-          <a-form-item label="Username">
-            <a-input v-model="loginForm.username" placeholder="Enter your username" />
-          </a-form-item>
-          <a-form-item label="Password">
-            <a-input-password v-model="loginForm.password" placeholder="Enter your password" />
-          </a-form-item>
-          <a-form-item>
-            <a-button type="primary" html-type="submit" block>Login</a-button>
-          </a-form-item>
-        </a-form>
-      </a-card>
-    </a-layout-content>
-  </a-layout>
+  <a-form
+    :model="formState"
+    name="basic"
+    :label-col="{ span: 8 }"
+    :wrapper-col="{ span: 16 }"
+    autocomplete="off"
+    @finish="onFinish"
+    @finishFailed="onFinishFailed"
+  >
+    <a-form-item
+      label="Username"
+      name="username"
+      
+    >
+      <a-input v-model:value="formState.email" />
+    </a-form-item>
+
+    <a-form-item
+      label="Password"
+      name="password"
+      :rules="[{ required: true, message: 'Please input your password!' }]"
+    >
+      <a-input-password v-model:value="formState.password" />
+    </a-form-item>
+
+    <a-form-item name="remember" :wrapper-col="{ offset: 8, span: 16 }">
+      <a-checkbox v-model:checked="formState.remember">Remember me</a-checkbox>
+    </a-form-item>
+
+    <a-form-item :wrapper-col="{ offset: 8, span: 16 }">
+      <a-button type="primary" html-type="submit">Submit</a-button>
+    </a-form-item>
+  </a-form>
 </template>
+<script lang="ts" setup>
+import { reactive } from 'vue';
+import { login } from '@/api/auth';
 
-<script lang="ts">
-import { defineComponent, reactive } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/authStore';
-import apiClient from '@/api/index';
-import { LOGIN_ENDPOINT } from '../api/endpoints';
+interface FormState {
+  email: string;
+  password: string;
+  remember: boolean;
+}
 
-export default defineComponent({
-  name: 'Login',
-  setup() {
-    const router = useRouter();
-    const authStore = useAuthStore();
+const formState = reactive<FormState>({
+  email: '',
+  password: '',
+  remember: true,
+});
+// const onFinish = (values: any) => {
+//   console.log('Success:', values);
+// };
 
-    const loginForm = reactive({
-      username: '',
-      password: '',
-    });
+const onFinish = async (e: Event) => {
+     
+      console.log('Captured email:', formState.email);
+      console.log('Captured password:', formState.password);
 
-    const handleLogin = async () => {
+      if (!formState.email || !formState.password) {
+        console.error('Email or password is empty');
+        return;
+      }
+
       try {
-        const response = await apiClient.post(LOGIN_ENDPOINT, {
-          username: loginForm.username,
-          password: loginForm.password,
-        });
-
-        // Set the user and token in the store
-        authStore.setUser(response.data.user);
-        authStore.setToken(response.data.token);
-
-        // Navigate to the dashboard
-        router.push('/dashboard');
+        const response = await login({ email: formState.email, password: formState.password });
+        console.log('Login successful:', response);
+        // Handle successful login, like redirecting to the dashboard
       } catch (error) {
-        // message.error('Login failed. Please check your credentials.');
+        // Handle the 'unknown' type error
+        if (error instanceof Error) {
+          console.error('Login failed:', error.message);
+        } else {
+          console.error('Login failed:', error);
+        }
       }
     };
 
-    return {
-      loginForm,
-      handleLogin,
-    };
-  },
-});
+const onFinishFailed = (errorInfo: any) => {
+  console.log('Failed:', errorInfo);
+};
 </script>
 
-<style scoped lang="less">
-.login-layout {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.login-content {
-  width: 100%;
-  max-width: 400px;
-}
-
-.login-card {
-  width: 100%;
-}
-</style>
