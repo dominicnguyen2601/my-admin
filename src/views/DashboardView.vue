@@ -18,7 +18,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore } from '@/stores/authentication/index';
 import { useRouter } from 'vue-router';
 
 export default defineComponent({
@@ -54,3 +54,4 @@ export default defineComponent({
   margin: 0 auto;
 }
 </style>
+@/stores/auth/authStore

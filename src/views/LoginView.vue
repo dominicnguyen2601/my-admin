@@ -35,7 +35,11 @@
 </template>
 <script lang="ts" setup>
 import { reactive } from 'vue';
-import { login } from '@/api/auth';
+import { useAuthStore } from '@/stores/authentication';
+// import { useUserStore } from '@/stores/user';
+
+
+const authStore = useAuthStore();
 
 interface FormState {
   email: string;
@@ -48,9 +52,7 @@ const formState = reactive<FormState>({
   password: '',
   remember: true,
 });
-// const onFinish = (values: any) => {
-//   console.log('Success:', values);
-// };
+
 
 const onFinish = async (e: Event) => {
      
@@ -63,7 +65,7 @@ const onFinish = async (e: Event) => {
       }
 
       try {
-        const response = await login({ email: formState.email, password: formState.password });
+        const response = await authStore.login(formState.email, formState.password);
         console.log('Login successful:', response);
         // Handle successful login, like redirecting to the dashboard
       } catch (error) {
